@@ -63,16 +63,23 @@ async function request(endpoint, options = {}) {
     : null;
 
   if (!response.ok) {
-    throw new ApiError(
-      data?.detail || "Something went wrong.",
-      response.status
-    );
+    const detail = data?.detail;
+
+    const message = Array.isArray(detail)
+      ? detail.map((item) => item.msg).join(", ")
+      : detail || "Something went wrong.";
+
+    throw new ApiError(message, response.status);
   }
 
   return data;
 }
 
 export const api = {
+  // ----------------------------------------
+  // AUTHENTICATION
+  // ----------------------------------------
+
   auth: {
     async register(payload) {
       const data = await request("/auth/register", {
@@ -109,17 +116,35 @@ export const api = {
     },
   },
 
+  // ----------------------------------------
+  // USER PROFILES
+  // ----------------------------------------
+
   profiles: {
+    // Retrieve the authenticated user's profile
     me() {
       return request("/profiles/me");
     },
 
+    // Update the authenticated user's profile
+    update(payload) {
+      return request("/profiles/me", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+    },
+
+    // Discover other user profiles
     discover(params = {}) {
       const query = new URLSearchParams(params);
 
       return request(`/discover?${query.toString()}`);
     },
   },
+
+  // ----------------------------------------
+  // PROPERTY LISTINGS
+  // ----------------------------------------
 
   properties: {
     list(params = {}) {
@@ -136,6 +161,10 @@ export const api = {
     },
   },
 
+  // ----------------------------------------
+  // CONNECTIONS
+  // ----------------------------------------
+
   connections: {
     send(recipientId) {
       return request(`/connections/${recipientId}`, {
@@ -145,4 +174,11 @@ export const api = {
   },
 };
 
-export { getAccessToken, clearAccessToken };
+// ----------------------------------------
+// TOKEN UTILITIES
+// ----------------------------------------
+
+export {
+  getAccessToken,
+  clearAccessToken,
+};

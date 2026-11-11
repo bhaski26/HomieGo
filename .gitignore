@@ -10,3 +10,8 @@ __pycache__/
 dist/
 build/
 *.pyc
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
