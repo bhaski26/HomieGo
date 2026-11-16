@@ -37,7 +37,7 @@ from .core.config import CORS_ORIGINS
 
 from .core.security import get_current_user
 
-from .routers import auth
+from .routers import auth, profiles
 
 
 # ==================================================
@@ -68,6 +68,7 @@ app.add_middleware(
 # ==================================================
 
 app.include_router(auth.router)
+app.include_router(profiles.router)
 
 
 # ==================================================
@@ -96,39 +97,6 @@ def health():
     return {
         "status": "ok"
     }
-
-
-# ==================================================
-# PROFILES
-# ==================================================
-
-@app.get(
-    "/profiles/me",
-    response_model=ProfileOut
-)
-def me(
-    user: User = Depends(get_current_user)
-):
-    return profile_out(user.profile)
-
-
-@app.put(
-    "/profiles/me",
-    response_model=ProfileOut
-)
-def update_profile(
-    data: ProfileIn,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-
-    for key, value in data.model_dump().items():
-        setattr(user.profile, key, value)
-
-    db.commit()
-    db.refresh(user.profile)
-
-    return profile_out(user.profile)
 
 
 # ==================================================
